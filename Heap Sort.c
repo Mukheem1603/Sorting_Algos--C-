@@ -1,68 +1,137 @@
-/*  Below program is written in C++ language  */
-
-#include <iostream>
-
-using namespace std;
-
-void heapify(int arr[], int n, int i)
-{
-    int largest = i;
-    int l = 2*i + 1;
-    int r = 2*i + 2;
+#include <stdio.h>
+#include <stdlib.h>
  
-    // if left child is larger than root
-    if (l < n && arr[l] > arr[largest])
-        largest = l;
+#define uint unsigned int
+#define SIZE 10
  
-    // if right child is larger than largest so far
-    if (r < n && arr[r] > arr[largest])
-        largest = r;
+typedef int (*compare_func)(int, int);
  
-    // if largest is not root
-    if (largest != i)
-    {
-        swap(arr[i], arr[largest]);
+int compare(int a, int b);
+void heap_sort(int a[], compare_func func_pointer, uint len);
+void display(int a[],const int size);
  
-        // recursively heapify the affected sub-tree
-        heapify(arr, n, largest);
-    }
-}
-
-void heapSort(int arr[], int n)
-{
-    // build heap (rearrange array)
-    for (int i = n / 2 - 1; i >= 0; i--)
-        heapify(arr, n, i);
- 
-    // one by one extract an element from heap
-    for (int i=n-1; i>=0; i--)
-    {
-        // move current root to end
-        swap(arr[0], arr[i]);
- 
-        // call max heapify on the reduced heap
-        heapify(arr, i, 0);
-    }
-}
- 
-/* function to print array of size n */
-void printArray(int arr[], int n)
-{
-    for (int i = 0; i < n; i++)
-    {
-        cout << arr[i] << " ";
-    }
-    cout << "\n";
-}
- 
-
 int main()
 {
-    int arr[] = {121, 10, 130, 57, 36, 17};
-    int n = sizeof(arr)/sizeof(arr[0]);
+    int a[SIZE] = {8,5,2,3,1,6,9,4,0,7};
  
-    heapSort(arr, n);
+    printf("Array before sorting:\n");
+    display(a,SIZE);
  
-    cout << "Sorted array is \n";
-    printArray(arr, n);
+    heap_sort(a, compare, SIZE);
+ 
+    printf("Array after sorting:\n");
+    display(a,SIZE);
+ 
+    return 0;
+}
+ 
+int compare(int a, int b)
+{
+    if (a > b)
+        return 1;
+    else if (a < b)
+        return -1;
+    else
+        return 0;
+}
+ 
+void heap_sort(int a[], compare_func func_pointer, uint len)
+{
+    /* heap sort */
+    uint half;
+    uint parents;
+ 
+    if (len <= 1)
+        return;
+    half = len >> 1;
+    for (parents = half; parents >= 1; --parents)
+    {
+        int tmp;
+        int level = 0;
+        uint child;
+ 
+        child = parents;
+        /* bottom-up downheap */
+ 
+        /* leaf-search for largest child path */
+        while (child <= half)
+        {
+            ++level;
+            child += child;
+            if ((child < len) &&  ((*func_pointer)(a[child], a[child - 1]) > 0))
+                ++child;
+        }
+        /* bottom-up-search for rotation point */
+        tmp = a[parents - 1];
+        for (;;)
+        {
+            if (parents == child)
+                break;
+            if ((*func_pointer)(tmp, a[child - 1]) <= 0)
+                break;
+            child >>= 1;
+            --level;
+        }
+        /* rotate nodes from parents to rotation point */
+        for (; level > 0; --level)
+        {
+            a[(child >> level) - 1] =
+                a[(child >> (level - 1)) - 1];
+        }
+        a[child - 1] = tmp;
+    }
+ 
+    --len;
+    do
+    {
+        int tmp;
+        int level = 0;
+        uint child;
+ 
+        /* move max element to back of array */
+        tmp = a[len];
+        a[len] = a[0];
+        a[0] = tmp;
+ 
+        child = parents = 1;
+        half = len >> 1;
+ 
+        /* bottom-up downheap */
+ 
+        /* leaf-search for largest child path */
+        while (child <= half)
+        {
+            ++level;
+            child += child;
+            if ((child < len) && ((*func_pointer)(a[child], a[child - 1]) > 0))
+                ++child;
+        }
+        /* bottom-up-search for rotation point */
+        for (;;)
+        {
+            if (parents == child)
+                break;
+            if ((*func_pointer)(tmp, a[child - 1]) <= 0)
+                break;
+            child >>= 1;
+            --level;
+        }
+        /* rotate nodes from parents to rotation point */
+        for (; level > 0; --level)
+        {
+            a[(child >> level) - 1] =
+                a[(child >> (level - 1)) - 1];
+        }
+        a[child - 1] = tmp;
+    }
+    while (--len >= 1);
+}
+ 
+void display(int a[],const int size)
+{
+    int i;
+    for(i = 0; i < size; i++)
+        printf("%d ",a[i]);
+ 
+    printf("\n");
 }
